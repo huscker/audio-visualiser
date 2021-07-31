@@ -3,21 +3,28 @@
 
 #include "audio_handler.h"
 #include <string>
+#include <complex>
 
 class ImageGen{
     private:
         int width;
         int height;
         float scale;
+        float bias;
         float gain;
+        float fallout;
+        float bias2;
+        float gain2;
+        float fallout2;
         int max_iters;
         AudioHandler ah;
     public:
         ImageGen(int width,int height,int max_iters);
         void setScale(float scale);
-        void setGain(float gain);
-        void save_frame_at(float cx,float cy,char fname[]);
-        void render_frames(std::string fname,int framerate);
+        void setFGB(float fallout,float gain,float bias);
+        void setFGB2(float fallout2,float gain2,float bias2);
+        void save_frame_at(std::complex<float> c,char fname[]);
+        void render_frames(std::string fname,int framerate,int startframe = 1);
 
 };
 

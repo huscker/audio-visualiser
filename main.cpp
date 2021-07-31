@@ -1,8 +1,10 @@
 #include "src/image_gen.h"
-#include <vector>
 int main(){
-    ImageGen ig(200,200,100);
+    ImageGen ig(100,100,50);
     ig.setScale(4.0);
-    ig.render_frames("test2.wav",60);
+    ig.setFGB(250.0,1/40.0,5500.0);
+    //ig.setFGB(100.0,1/100.0,500.0);
+    //ig.setFGB2(100.0,1/200.0,500.0);
+    ig.render_frames("kattest.wav",60);
     return 0;
 }

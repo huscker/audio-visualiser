@@ -1,4 +1,5 @@
 #include "audio_handler.h"
+#include "parametric_location.h"
 #include <string>
 #include <vector>
 #include <numeric>
@@ -6,16 +7,20 @@
 #include <valarray>
 #include "AudioFile.h"
 
-void AudioHandler::update_frames()
+void AudioHandler::update_frames(float fallout, float gain, float bias, float fallout2, float gain2, float bias2)
 {
     AudioHandler::frames.clear();
     int max_frames = AudioHandler::data.size() * AudioHandler::framerate / AudioHandler::bitrate - 1;
-    int margin = 2;
+    int margin = 1;
+    float theta = 0.0;
+    LocationChoose Lc = LocationChoose(7,max_frames-margin,1000);
     for (int i = margin; i < max_frames - margin; i++)
     {
-        std::vector<float> f;
+        std::vector<float> high;
+        std::vector<float> low;
+        std::vector<float> raw;
         std::valarray<std::complex<double>> temp;
-        temp.resize(2 * margin * AudioHandler::bitrate / AudioHandler::framerate + 1);
+        temp.resize((2 * margin + 1) * AudioHandler::bitrate / AudioHandler::framerate);
         std::copy(AudioHandler::data.begin() + (i - margin) * AudioHandler::bitrate / AudioHandler::framerate,
                   AudioHandler::data.begin() + (i + margin) * AudioHandler::bitrate / AudioHandler::framerate,
                   std::begin(temp));
@@ -26,9 +31,21 @@ void AudioHandler::update_frames()
             {
                 break;
             }
-            f.push_back(std::abs(temp[i]) * filter_smooth((AudioHandler::framerate * i) / (2 * margin + 1), 1.0 / 25.0, 750.0, 4000.0));
+            high.push_back(std::abs(temp[i]) * filter_smooth((AudioHandler::framerate * i) / (2 * margin + 1), gain, fallout, bias));
+            if (gain2 > 0.0)
+            {
+                low.push_back(std::abs(temp[i]) * filter_smooth((AudioHandler::framerate * i) / (2 * margin + 1), gain2, fallout2, bias2));
+            }
+            raw.push_back(std::abs(temp[i]));
         }
-        AudioHandler::frames.push_back(std::accumulate(f.begin(), f.end(), 0.0));
+        if (gain2 > 0.0)
+        {
+           AudioHandler::frames.push_back(Lc.get(std::accumulate(high.begin(), high.end(), 0.0),i,std::accumulate(low.begin(),low.end(),0.0)));
+        }
+        else
+        {
+            AudioHandler::frames.push_back(Lc.get(std::accumulate(high.begin(), high.end(), 0.0),i,0));
+        }
     }
 }
 
@@ -51,7 +68,7 @@ void AudioHandler::set_framerate(int framerate)
     AudioHandler::framerate = framerate;
 }
 
-std::vector<float> AudioHandler::get_frames()
+std::vector<std::complex<float>> AudioHandler::get_frames()
 {
     return AudioHandler::frames;
 }
