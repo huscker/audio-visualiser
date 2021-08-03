@@ -5,6 +5,7 @@
 #define RAND_STEP 1.0
 #define FAIL_MAX 1000
 #define RAND_BOUNDARIES 1.0
+#define RAND_EXCLUDE_RADIUS 0.3
 #define RAND_VELOCITY 0.2
 
 struct LocationChoose::point
@@ -81,7 +82,25 @@ std::complex<float> LocationChoose::random_path_swapped(float high){
         p1.y + (p2.y-p1.y)*t
     );
 }
-LocationChoose::LocationChoose(int mode, int max_frames, int n_points)
+std::complex<float> LocationChoose::random_path_swapped_both(float high,float low){
+    int a = std::min(int(low*RAND_VELOCITY),LocationChoose::n_points-2);
+    float t = low*RAND_VELOCITY-a;
+    point p1 = LocationChoose::points[a];
+    point p2 = LocationChoose::points[std::min(a+1,LocationChoose::n_points-1)];
+    std::complex<float> temp(
+        p1.x + (p2.x-p1.x)*t,
+        p1.y + (p2.y-p1.y)*t
+    );
+    temp += std::polar<float>(
+        high-0.25,
+        std::atan2(
+            (p2.y-p1.y),
+            (p2.x-p1.x)
+        )
+    );
+    return temp;
+}
+LocationChoose::LocationChoose(modes mode, int max_frames, int n_points)
 {
     srand(time(NULL));
     LocationChoose::mode = mode;
@@ -101,7 +120,9 @@ LocationChoose::LocationChoose(int mode, int max_frames, int n_points)
             points[i].y = points[i-1].y + std::sin(angle)*RAND_STEP;
             if(-RAND_BOUNDARIES <= points[i].x && points[i].x <= RAND_BOUNDARIES){
                 if(-RAND_BOUNDARIES <= points[i].y && points[i].y <= RAND_BOUNDARIES){
-                    isGenerated = true;
+                    if( points[i].x*points[i].x + points[i].y*points[i].y >= RAND_EXCLUDE_RADIUS){
+                        isGenerated = true;
+                    }
                 }
             }
             failCounter++;
@@ -120,25 +141,28 @@ std::complex<float> LocationChoose::get(float high, int i, float low)
 {
     switch (LocationChoose::mode)
     {
-    case 0: // standart
+    case modes::standart:
         return LocationChoose::standart(high, float(i));
-    case 1: // standart both
+    case modes::standart_both: 
         theta += low;
         return LocationChoose::standart_both(high, theta);
-    case 2: // swapped
+    case modes::swapped:
         return LocationChoose::swapped(high);
-    case 3: // psychodelic
+    case modes::psychodelic: 
         return LocationChoose::psychodelic(high, float(i));
-    case 4: // swapped remembering
+    case modes::swapped_remembering:
         theta += high;
         return LocationChoose::swapped(theta);
-    case 5: // random path
+    case modes::random_path:
         return LocationChoose::random_path(high,i);
-    case 6: // random path different
+    case modes::random_path_different:
         return LocationChoose::random_path_different(high,i);
-    case 7:
+    case modes::random_path_swapped: 
         theta += high;
         return LocationChoose::random_path_swapped(theta);
+    case modes::random_path_swapped_both:
+        theta += low;
+        return LocationChoose::random_path_swapped_both(high,theta);
     default:
         return std::complex<float>(0, 0);
     }

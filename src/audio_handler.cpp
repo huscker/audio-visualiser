@@ -7,13 +7,13 @@
 #include <valarray>
 #include "AudioFile.h"
 
-void AudioHandler::update_frames(float fallout, float gain, float bias, float fallout2, float gain2, float bias2)
+void AudioHandler::update_frames(modes mode,float fallout, float gain, float bias, float fallout2, float gain2, float bias2)
 {
     AudioHandler::frames.clear();
     int max_frames = AudioHandler::data.size() * AudioHandler::framerate / AudioHandler::bitrate - 1;
     int margin = 1;
     float theta = 0.0;
-    LocationChoose Lc = LocationChoose(7,max_frames-margin,1000);
+    LocationChoose Lc = LocationChoose(mode,max_frames-margin,5000);
     for (int i = margin; i < max_frames - margin; i++)
     {
         std::vector<float> high;
@@ -51,7 +51,6 @@ void AudioHandler::update_frames(float fallout, float gain, float bias, float fa
 
 void AudioHandler::load_data(std::string fname)
 {
-    fname = "../" + fname;
     if (AudioHandler::fname != fname)
     { // update only if changed
         AudioHandler::fname = fname;

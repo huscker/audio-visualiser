@@ -4,30 +4,33 @@
 
 #define cimg_display 0
 //#define DEBUG
+
 #include "CImg.h"
 using namespace cimg_library;
 
-void ImageGen::render_frames(std::string fname, int framerate, int startframe)
+void ImageGen::render_frames(std::string fname, std::string output_dir, int framerate, modes mode,colors color, int startframe)
 {
     ImageGen::ah.load_data(fname);
     ImageGen::ah.set_framerate(framerate);
-    ImageGen::ah.update_frames(ImageGen::fallout, ImageGen::gain, ImageGen::bias, ImageGen::fallout2, ImageGen::gain2, ImageGen::bias2);
+    ImageGen::ah.update_frames(mode, ImageGen::fallout, ImageGen::gain, ImageGen::bias, ImageGen::fallout2, ImageGen::gain2, ImageGen::bias2);
     std::vector<std::complex<float>> frames = ImageGen::ah.get_frames();
 #if defined(_WIN32)
-    _mkdir("../result");
+    _mkdir(output_dir.c_str());
 #else
-    mkdir("../result", 0777);
+    mkdir(output_dir.c_str(), 0777);
 #endif
     for (int i = startframe; i <= frames.size(); i++)
     {
-        char buf[50];
-        std::sprintf(buf, "../result/%d.jpg", i);
-        ImageGen::save_frame_at(frames[i - 1], buf);
+
+        char buf[100];
+        std::string output_file = std::string(output_dir) + "/%d.jpg";
+        std::sprintf(buf, output_file.c_str(), i);
+        ImageGen::save_frame_at(frames[i - 1],color, buf);
         std::printf("%d %d\n", i, frames.size());
     }
 }
 
-void ImageGen::save_frame_at(std::complex<float> c, char fname[])
+void ImageGen::save_frame_at(std::complex<float> c,colors color, char fname[])
 {
 
     CImg<unsigned int> img(ImageGen::width, ImageGen::height, 1, 3, 0);
@@ -38,29 +41,21 @@ void ImageGen::save_frame_at(std::complex<float> c, char fname[])
 #ifdef DEBUG
             if (std::abs(ImageGen::scale * (float(x) / ImageGen::width - 0.5) - std::real(c)) + std::abs(ImageGen::scale * (float(y) / ImageGen::width - 0.5) - std::imag(c)) <= 0.1)
             {
-                img(x, y, 0) = 255 ;
-                img(x, y, 1) = 0 ;
-                img(x, y, 2) = 0 ;
-            }else{
-                img(x, y, 0) = 0 ;
-                img(x, y, 1) = 0 ;
-                img(x, y, 2) = 0 ;
+                img(x, y, 0) = 255;
+                img(x, y, 1) = 0;
+                img(x, y, 2) = 0;
             }
 #endif // DEBUG
 #ifndef DEBUG
-            if (std::abs(ImageGen::scale * (float(x) / ImageGen::width - 0.5) - std::real(c)) + std::abs(ImageGen::scale * (float(y) / ImageGen::width - 0.5) - std::imag(c)) <= 0.1)
-            {
-                img(x, y, 0) = 255 ;
-                img(x, y, 1) = 0 ;
-                img(x, y, 2) = 0 ;
-            }else{
-                // fast method
-                std::complex<float> z(ImageGen::scale * (float(x) / ImageGen::width - 0.5), ImageGen::scale * (float(y) / ImageGen::width - 0.5));
-                int it = julia_set_complex(z, c, ImageGen::max_iters);
-                img(x, y, 0) = 255 * it / ImageGen::max_iters;
-                img(x, y, 1) = 255 * it / ImageGen::max_iters;
-                img(x, y, 2) = 255 * it / ImageGen::max_iters;
-            }
+            int red = 0;
+            int blue = 0;
+            int green = 0;
+            std::complex<float> z(ImageGen::scale * (float(x) / ImageGen::width - 0.5), ImageGen::scale * (float(y) / ImageGen::width - 0.5));
+            float sc = julia_set_complex_rgb(z, c, ImageGen::max_iters, red, green, blue);
+            colorise_smooth(color,sc,red,green,blue);
+            img(x, y, 0) = red;
+            img(x, y, 1) = green;
+            img(x, y, 2) = blue;
 #endif // !DEBUG
         }
     }
