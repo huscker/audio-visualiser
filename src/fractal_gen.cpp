@@ -29,7 +29,7 @@ int julia_set_complex(std::complex<float> z, std::complex<float> c, const int ma
     }
     return 0;
 }
-float julia_set_complex_rgb(std::complex<float> z, std::complex<float> c, const int max_iters, int &red, int &green, int &blue)
+float julia_set_complex_rgb(std::complex<float> z, std::complex<float> c, const int max_iters)
 {
     float sc = 0.0;
     for (int i = 0; i < max_iters; i++)
@@ -42,9 +42,6 @@ float julia_set_complex_rgb(std::complex<float> z, std::complex<float> c, const 
         }
     }
     return sc;
-    red = std::min(255, int(0.2 * sc * 255));
-    green = std::min(255, int(0.1 * sc * 255));
-    blue = std::min(255, int(0.2 * sc * 255));
 }
 void colorise_smooth(colors color,float sc, int &red, int &green, int &blue)
 {
@@ -79,6 +76,11 @@ void colorise_smooth(colors color,float sc, int &red, int &green, int &blue)
         red = std::min(255, int((0.1+0.32 * sc) * 255));
         green = std::min(255, int((0.1+0.2 * sc) * 255));
         blue = std::min(255, int((0.1+0.1 * sc) * 255));
+        break;
+    case colors::wavy:
+        red = std::min(255, int(std::sin(std::pow(sc,2.0)*0.02) * 255));
+        green = std::min(255, int(std::sin(std::pow(sc,2.0)*0.03)* 255));
+        blue = std::min(255, int(std::sin(std::pow(sc,2.0)*0.035) * 255));
         break;
     }
             

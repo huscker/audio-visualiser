@@ -12,21 +12,12 @@ class ImageGen{
         int width;
         int height;
         float scale;
-        float bias;
-        float gain;
-        float fallout;
-        float bias2;
-        float gain2;
-        float fallout2;
         int max_iters;
-        AudioHandler ah;
     public:
         ImageGen(int width,int height,int max_iters);
         void setScale(float scale);
-        void setFGB(float fallout,float gain,float bias);
-        void setFGB2(float fallout2,float gain2,float bias2);
         void save_frame_at(std::complex<float> c,colors color,char fname[]);
-        void render_frames(std::string fname,std::string output_dir,int framerate,modes mode,colors color,int startframe = 1);
+        void render_frames(std::string output_dir,AudioHandler &ah,colors color,int startframe = 1); // startframe doesnt work on all modes
 
 };
 

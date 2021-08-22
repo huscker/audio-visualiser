@@ -34,6 +34,6 @@ class LocationChoose{
     public:
         LocationChoose(modes mode,int max_frames,int n_points = 1);
         ~LocationChoose();
-        std::complex<float> get(float high,int i,float low = 0.0);
+        std::complex<float> get(float high,int i,float low, float average);
 };
 #endif

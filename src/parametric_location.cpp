@@ -137,7 +137,7 @@ LocationChoose::~LocationChoose()
 {
     delete[] LocationChoose::points;
 }
-std::complex<float> LocationChoose::get(float high, int i, float low)
+std::complex<float> LocationChoose::get(float high, int i, float low,float average)
 {
     switch (LocationChoose::mode)
     {
@@ -149,7 +149,7 @@ std::complex<float> LocationChoose::get(float high, int i, float low)
     case modes::swapped:
         return LocationChoose::swapped(high);
     case modes::psychodelic: 
-        return LocationChoose::psychodelic(high, float(i));
+        return LocationChoose::psychodelic(high+average, float(i));
     case modes::swapped_remembering:
         theta += high;
         return LocationChoose::swapped(theta);
